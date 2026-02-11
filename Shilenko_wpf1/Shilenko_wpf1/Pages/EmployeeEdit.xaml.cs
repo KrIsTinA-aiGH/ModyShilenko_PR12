@@ -67,7 +67,6 @@ namespace Shilenko_wpf1.Pages
                 txtPhone.Text = _currentEmployee.Phone;
                 txtEmail.Text = _currentEmployee.Email;
 
-                // TODO: Здесь можно добавить загрузку сохраненного изображения из базы
                 // Пока просто показываем, что изображение не выбрано
                 SetDefaultImage();
                 txtImagePath.Text = "Изображение не сохранено в базе";

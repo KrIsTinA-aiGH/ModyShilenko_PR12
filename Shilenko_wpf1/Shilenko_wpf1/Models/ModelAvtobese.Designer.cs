@@ -1,4 +1,4 @@
-﻿// Создание кода T4 для модели "C:\Users\IkristinaI\OneDrive\Desktop\3 КУРС\Разработка программных модулей\ПР9\Shilenko_wpf1\Shilenko_wpf1\Models\ModelAvtobese.edmx" включено. 
+﻿// Создание кода T4 для модели "C:\Users\IkristinaI\OneDrive\Desktop\3 КУРС\Разработка программных модулей\ПР10\Shilenko_wpf1\Shilenko_wpf1\Models\ModelAvtobese.edmx" включено. 
 // Чтобы включить формирование кода прежних версий, измените значение свойства "Стратегия создания кода" конструктора
 // на "Legacy ObjectContext". Это свойство доступно в окне "Свойства", если модель
 // открыта в конструкторе.
