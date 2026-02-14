@@ -43,6 +43,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
@@ -65,11 +66,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Pages\CodeVerificationDialog.xaml.cs">
+      <DependentUpon>CodeVerificationDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\EmployeeEdit.xaml.cs">
       <DependentUpon>EmployeeEdit.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\EmployeesList.xaml.cs">
       <DependentUpon>EmployeesList.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PasswordRecoveryDialog.xaml.cs">
+      <DependentUpon>PasswordRecoveryDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ResetPasswordDialog.xaml.cs">
+      <DependentUpon>ResetPasswordDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\TwoFactorDialog.xaml.cs">
+      <DependentUpon>TwoFactorDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\CaptchaGenerator.cs" />
     <Compile Include="Models\Cars.cs">
@@ -141,7 +154,10 @@
     <Compile Include="Pages\Client.xaml.cs">
       <DependentUpon>Client.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Services\CodeGenerator.cs" />
+    <Compile Include="Services\EmailService.cs" />
     <Compile Include="Services\Hash.cs" />
+    <Compile Include="Services\PasswordRecoveryService.cs" />
     <Compile Include="Services\TimeService.cs" />
     <Compile Include="Validation\AuthValidator.cs" />
     <Compile Include="Validation\EmployeeValidator.cs" />
@@ -166,11 +182,27 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\CodeVerificationDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\EmployeeEdit.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\EmployeesList.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PasswordRecoveryDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\ResetPasswordDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\TwoFactorDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -13,14 +13,26 @@ namespace Shilenko_wpf1.Pages
 {
     public partial class Autho : Page
     {
+        ///сервис восстановления пароля для обработки сброса пароля
+        private PasswordRecoveryService passwordRecoveryService;
+        ///генератор кодов для создания кодов 2FA и восстановления пароля
+        private CodeGenerator codeGenerator;
+        ///текущий код двухфакторной аутентификации
+        private string current2FACode;
+        ///текущий пользователь для которого выполняется 2FA
+        private Users currentUserFor2FA;
+
         int attempts = 0;
         private bool isBlocked = false;
         private bool captchaRequired = false;
         private System.Windows.Threading.DispatcherTimer blockTimer;
 
+        //Конструктор страницы авторизации
         public Autho()
         {
             InitializeComponent();
+            passwordRecoveryService = new PasswordRecoveryService();
+            codeGenerator = new CodeGenerator();
             InitializeTimer();
             ResetForm();
         }
@@ -63,7 +75,6 @@ namespace Shilenko_wpf1.Pages
 
             if (isBlocked) return;
 
-            //проверка капчи, если она требуется
             if (captchaRequired)
             {
                 if (string.IsNullOrWhiteSpace(tbCaptcha.Text) || tbCaptcha.Text != tblCaptcha.Text.Replace(" ", ""))
@@ -85,8 +96,6 @@ namespace Shilenko_wpf1.Pages
                 return;
             }
 
-
-
             try
             {
                 using (var db = new AutobaseEntities())
@@ -95,14 +104,23 @@ namespace Shilenko_wpf1.Pages
 
                     if (user != null)
                     {
-                        //проверка рабочего времени только для сотрудников (не для клиентов)
                         if (!TimeService.IsWithinWorkingHours() && TimeService.IsEmployee(user))
                         {
                             MessageBox.Show("Доступ разрешен только в рабочее время (10:00-19:00)!");
                             return;
                         }
 
-                        LoginSuccess(user);
+                        currentUserFor2FA = user;
+
+                        if (!cbDisable2FA.IsChecked.Value)  //Если флажок НЕ установлен 
+                        {
+                            PerformTwoFactorAuthentication(user);  //Запускаем 2FA
+                        }
+                        else
+                        {
+                            LoginSuccess(user);  //Пропускаем 2FA и сразу авторизуем
+                        }
+
                         attempts = 0;
                         captchaRequired = false;
                         HideCaptcha();
@@ -122,6 +140,67 @@ namespace Shilenko_wpf1.Pages
             {
                 if (!isBlocked)
                     NavigationService.Navigate(new Client(null, "Гость"));
+            }
+        }
+
+        ///выполнение двухфакторной аутентификации
+        private void PerformTwoFactorAuthentication(Users user)
+        {
+            ///Получаем email пользователя для отправки кода
+            string email = user.Email;
+            ///Генерируем новый 4-значный код 2FA
+            current2FACode = codeGenerator.GenerateCode();
+
+            var emailService = new EmailService();
+            ///Отправляем код 2FA на email пользователя
+            bool codeSent = emailService.SendEmail(
+                email,
+                "Код двухфакторной аутентификации",
+                $"Ваш код для входа: {current2FACode}\n" +
+                $"Код действителен в течение текущей сессии."
+            );
+
+            ///Проверяем результат отправки письма
+            if (!codeSent)
+            {
+                MessageBox.Show("Не удалось отправить код аутентификации. Попробуйте ещё раз.",
+                               "Ошибка",
+                               MessageBoxButton.OK,
+                               MessageBoxImage.Error);
+                return;
+            }
+
+            ///Создаем и показываем диалог ввода кода 2FA
+            var twoFactorDialog = new TwoFactorDialog();
+            ///Проверяем что пользователь ввел код
+            if (twoFactorDialog.ShowDialog() == true)
+            {
+                ///Получаем введенный код
+                string enteredCode = twoFactorDialog.EnteredCode;
+                ///Проверяем правильность кода (без учета регистра)
+                if (current2FACode.Equals(enteredCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("Код подтверждён!",
+                                   "Успех",
+                                   MessageBoxButton.OK,
+                                   MessageBoxImage.Information);
+                    ///Выполняем успешный вход пользователя
+                    LoginSuccess(currentUserFor2FA);
+                }
+                else
+                {
+                    MessageBox.Show("Неверный код аутентификации",
+                                   "Ошибка",
+                                   MessageBoxButton.OK,
+                                   MessageBoxImage.Warning);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Вход отменён",
+                               "Информация",
+                               MessageBoxButton.OK,
+                               MessageBoxImage.Information);
             }
         }
 
@@ -198,7 +277,7 @@ namespace Shilenko_wpf1.Pages
                 MessageBox.Show($"Ошибка определения роли: {ex.Message}");
             }
 
-            // Fallback: проверяем по email
+            //проверяем по email
             var email = user.Email.ToLower();
             if (email.Contains("admin")) return "Администратор";
             if (email.Contains("director")) return "Директор";
@@ -274,5 +353,88 @@ namespace Shilenko_wpf1.Pages
 
             ResetForm();
         }
+
+        ///обработка нажатия кнопки "Забыли пароль?"
+        private void btnForgotPassword_Click(object sender, RoutedEventArgs e)
+        {
+            ///Создаем и показываем диалог ввода email
+            var recoveryDialog = new PasswordRecoveryDialog();
+            ///Проверяем что пользователь подтвердил ввод email
+            if (recoveryDialog.ShowDialog() == true)
+            {
+                ///Получаем введенный email
+                string email = recoveryDialog.EnteredEmail;
+
+                using (var db = new AutobaseEntities())
+                {
+                    var user = db.Users.FirstOrDefault(u => u.Email == email);
+                    if (user == null)
+                    {
+                        MessageBox.Show("Пользователь с таким email не найден",
+                                       "Ошибка",
+                                       MessageBoxButton.OK,
+                                       MessageBoxImage.Warning);
+                        return;
+                    }
+                }
+
+                ///Отправляем код восстановления на указанный email
+                bool codeSent = passwordRecoveryService.SendRecoveryCode(email);
+                if (!codeSent)
+                {
+                    MessageBox.Show("Не удалось отправить код на указанный email",
+                                   "Ошибка",
+                                   MessageBoxButton.OK,
+                                   MessageBoxImage.Error);
+                    return;
+                }
+
+                ///Создаем и показываем диалог ввода кода подтверждения
+                var codeDialog = new CodeVerificationDialog();
+                ///Проверяем что пользователь ввел код
+                if (codeDialog.ShowDialog() == true)
+                {
+                    ///Получаем введенный код
+                    string enteredCode = codeDialog.EnteredCode;
+                    ///Проверяем правильность кода
+                    if (passwordRecoveryService.VerifyCode(enteredCode))
+                    {
+                        ///Создаем и показываем диалог ввода нового пароля
+                        var resetDialog = new ResetPasswordDialog();
+                        ///Проверяем что пользователь подтвердил новый пароль
+                        if (resetDialog.ShowDialog() == true)
+                        {
+                            ///Получаем новый пароль
+                            string newPassword = resetDialog.NewPassword;
+                            ///Сбрасываем пароль в базе данных
+                            bool success = passwordRecoveryService.ResetPassword(newPassword);
+
+                            if (success)
+                            {
+                                MessageBox.Show("Пароль успешно изменён! Теперь вы можете войти с новым паролем",
+                                               "Успех",
+                                               MessageBoxButton.OK,
+                                               MessageBoxImage.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show("Не удалось изменить пароль",
+                                               "Ошибка",
+                                               MessageBoxButton.OK,
+                                               MessageBoxImage.Error);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Неверный код подтверждения",
+                                       "Ошибка",
+                                       MessageBoxButton.OK,
+                                       MessageBoxImage.Warning);
+                    }
+                }
+            }
+        }
+
     }
 }
