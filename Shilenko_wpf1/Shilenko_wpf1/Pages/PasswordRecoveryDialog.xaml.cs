@@ -4,7 +4,7 @@ namespace Shilenko_wpf1.Pages
 {
     public partial class PasswordRecoveryDialog : Window
     {
-        ///введенный пользователем email
+        
         public string EnteredEmail { get; private set; }
 
         public PasswordRecoveryDialog()
@@ -29,9 +29,7 @@ namespace Shilenko_wpf1.Pages
                 return;
             }
 
-            ///Сохраняем введенный email в свойство
             EnteredEmail = email;
-            ///Устанавливаем результат диалога как успешный
             DialogResult = true;
             Close();
         }
@@ -39,7 +37,6 @@ namespace Shilenko_wpf1.Pages
         ///обработка нажатия кнопки "Отмена"
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
-            ///Устанавливаем результат диалога как отмененный
             DialogResult = false;
             Close();
         }

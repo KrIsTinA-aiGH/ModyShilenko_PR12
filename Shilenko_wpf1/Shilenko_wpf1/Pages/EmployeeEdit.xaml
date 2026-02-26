@@ -6,10 +6,204 @@
       xmlns:local="clr-namespace:Shilenko_wpf1.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="600"
-      Title="Добавление/редактирование сотрудника">
+      Title="Добавление/редактирование сотрудника"
+      Background="#1a1a1a">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Background="White" Margin="20">
+    <Page.Resources>
+        <!-- Кисти темы -->
+        <SolidColorBrush x:Key="BgDarkBrush" Color="#1a1a1a"/>
+        <SolidColorBrush x:Key="BgCardBrush" Color="#2d2d2d"/>
+        <SolidColorBrush x:Key="InputBackgroundBrush" Color="#3a3a3a"/>
+        <SolidColorBrush x:Key="InputBorderBrush" Color="#404040"/>
+        <SolidColorBrush x:Key="AccentRedBrush" Color="#c41e3a"/>
+        <SolidColorBrush x:Key="AccentRedHoverBrush" Color="#e02a4a"/>
+        <SolidColorBrush x:Key="AccentRedPressedBrush" Color="#9a172d"/>
+        <SolidColorBrush x:Key="WarningOrangeBrush" Color="#d35400"/>
+        <SolidColorBrush x:Key="WarningOrangeHoverBrush" Color="#e67e22"/>
+        <SolidColorBrush x:Key="SecondaryGrayBrush" Color="#404040"/>
+        <SolidColorBrush x:Key="SecondaryGrayHoverBrush" Color="#505050"/>
+        <SolidColorBrush x:Key="TextMainBrush" Color="#e0e0e0"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#a0a0a0"/>
+
+        <!-- Стиль для заголовка формы -->
+        <Style x:Key="FormTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+
+        <!-- Стиль для подписей полей -->
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,5,10,5"/>
+            <Setter Property="MinWidth" Value="120"/>
+        </Style>
+
+        <!-- Стиль для TextBox -->
+        <Style x:Key="ThemeTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="MinWidth" Value="200"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для ComboBox -->
+        <Style x:Key="ThemeComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="MinWidth" Value="200"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для DatePicker -->
+        <Style x:Key="ThemeDatePickerStyle" TargetType="DatePicker">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="MinWidth" Value="200"/>
+            <Setter Property="SelectedDateFormat" Value="Short"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для основной кнопки (Сохранить) -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentRedBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource AccentRedHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{StaticResource AccentRedPressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для кнопки удаления (оранжевый) -->
+        <Style x:Key="WarningButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource WarningOrangeBrush}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource WarningOrangeHoverBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для вторичной кнопки (Отмена) -->
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource SecondaryGrayBrush}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource SecondaryGrayHoverBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для кнопки выбора изображения -->
+        <Style x:Key="ImageButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для рамки изображения -->
+        <Style x:Key="PhotoFrameStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Background="{StaticResource BgDarkBrush}">
+        <Grid Background="{StaticResource BgCardBrush}" Margin="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -30,76 +224,69 @@
 
             <!-- Заголовок -->
             <TextBlock Grid.Row="0" Grid.ColumnSpan="2" 
-                       x:Name="tbTitle" Text="Добавление сотрудника" 
-                       FontSize="20" FontWeight="Bold" 
-                       HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                       x:Name="tbTitle" 
+                       Text="Добавление сотрудника" 
+                       Style="{StaticResource FormTitleStyle}"/>
 
             <!-- Фамилия -->
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Фамилия:" 
-                       VerticalAlignment="Center" Margin="0,5"/>
-            <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtLastName" 
-                     Margin="5" MinWidth="200"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Фамилия:" Style="{StaticResource FieldLabelStyle}"/>
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtLastName" Style="{StaticResource ThemeTextBoxStyle}"/>
 
             <!-- Имя -->
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Имя:" 
-                       VerticalAlignment="Center" Margin="0,5"/>
-            <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtFirstName" 
-                     Margin="5" MinWidth="200"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Имя:" Style="{StaticResource FieldLabelStyle}"/>
+            <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtFirstName" Style="{StaticResource ThemeTextBoxStyle}"/>
 
             <!-- Должность -->
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Должность:" 
-                       VerticalAlignment="Center" Margin="0,5"/>
-            <ComboBox Grid.Row="3" Grid.Column="1" x:Name="cmbPosition" 
-                      Margin="5" MinWidth="200"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Должность:" Style="{StaticResource FieldLabelStyle}"/>
+            <ComboBox Grid.Row="3" Grid.Column="1" x:Name="cmbPosition" Style="{StaticResource ThemeComboBoxStyle}"/>
 
             <!-- Дата приёма -->
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Дата приёма:" 
-                       VerticalAlignment="Center" Margin="0,5"/>
-            <DatePicker Grid.Row="4" Grid.Column="1" x:Name="dpHireDate" 
-                        Margin="5" SelectedDateFormat="Short"/>
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Дата приёма:" Style="{StaticResource FieldLabelStyle}"/>
+            <DatePicker Grid.Row="4" Grid.Column="1" x:Name="dpHireDate" Style="{StaticResource ThemeDatePickerStyle}"/>
 
             <!-- Телефон -->
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Телефон:" 
-                       VerticalAlignment="Center" Margin="0,5"/>
-            <TextBox Grid.Row="5" Grid.Column="1" x:Name="txtPhone" 
-                     Margin="5" MinWidth="200"/>
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Телефон:" Style="{StaticResource FieldLabelStyle}"/>
+            <TextBox Grid.Row="5" Grid.Column="1" x:Name="txtPhone" Style="{StaticResource ThemeTextBoxStyle}"/>
 
             <!-- Email -->
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="Email:" 
-                       VerticalAlignment="Center" Margin="0,5"/>
-            <TextBox Grid.Row="6" Grid.Column="1" x:Name="txtEmail" 
-                     Margin="5" MinWidth="200"/>
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Email:" Style="{StaticResource FieldLabelStyle}"/>
+            <TextBox Grid.Row="6" Grid.Column="1" x:Name="txtEmail" Style="{StaticResource ThemeTextBoxStyle}"/>
 
             <!-- Изображение -->
             <TextBlock Grid.Row="7" Grid.Column="0" Text="Фотография:" 
-                       VerticalAlignment="Top" Margin="0,5"/>
+                       VerticalAlignment="Top" Style="{StaticResource FieldLabelStyle}"/>
             <StackPanel Grid.Row="7" Grid.Column="1" Margin="5">
-                <Image x:Name="imgPhoto" Width="120" Height="120" 
-       Stretch="Uniform" Margin="10">
-                    <Image.Source>
-                        <BitmapImage UriSource="/Resources/picture.png"/>
-                    </Image.Source>
-                </Image>
-                <Button x:Name="btnSelectImage" Content="Выбрать изображение" 
-                        Margin="0,5,0,0" Padding="5,2" Click="btnSelectImage_Click"/>
+                <!-- Рамка для фото -->
+                <Border Style="{StaticResource PhotoFrameStyle}" HorizontalAlignment="Left">
+                    <Image x:Name="imgPhoto" Width="120" Height="120" Stretch="Uniform">
+                        <Image.Source>
+                            <BitmapImage UriSource="/Resources/picture.png"/>
+                        </Image.Source>
+                    </Image>
+                </Border>
+                <Button x:Name="btnSelectImage" 
+                        Content="Выбрать изображение" 
+                        Style="{StaticResource ImageButtonStyle}"
+                        Click="btnSelectImage_Click"/>
             </StackPanel>
 
             <!-- Путь к изображению -->
-            <TextBlock Grid.Row="8" Grid.Column="0" Text="Путь к изображению:" 
-           VerticalAlignment="Center" Margin="0,10"/>
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="Путь к файлу:" 
+                       VerticalAlignment="Center" Style="{StaticResource FieldLabelStyle}"/>
             <TextBox Grid.Row="8" Grid.Column="1" x:Name="txtImagePath" 
-         Margin="0,10" Height="25" VerticalContentAlignment="Center" IsReadOnly="True"/>
+                     Style="{StaticResource ThemeTextBoxStyle}"
+                     Height="30" 
+                     VerticalContentAlignment="Center" 
+                     IsReadOnly="True"
+                     Foreground="{StaticResource TextMutedBrush}"/>
 
             <!-- Кнопки -->
             <StackPanel Grid.Row="11" Grid.ColumnSpan="2" 
                         Orientation="Horizontal" HorizontalAlignment="Center" 
                         Margin="0,20,0,0">
-                <Button x:Name="btnSave" Content="Сохранить" 
-                        Width="120" Height="30" Margin="10" Click="btnSave_Click"/>
-                <Button x:Name="btnDelete" Content="Удалить" 
-                        Width="120" Height="30" Margin="10" Click="btnDelete_Click"/>
-                <Button x:Name="btnCancel" Content="Отмена" 
-                        Width="120" Height="30" Margin="10" Click="btnCancel_Click"/>
+                <Button x:Name="btnSave" Content="Сохранить" Style="{StaticResource PrimaryButtonStyle}" Click="btnSave_Click"/>
+                <Button x:Name="btnDelete" Content="Удалить" Style="{StaticResource WarningButtonStyle}" Click="btnDelete_Click"/>
+                <Button x:Name="btnCancel" Content="Отмена" Style="{StaticResource SecondaryButtonStyle}" Click="btnCancel_Click"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

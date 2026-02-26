@@ -7,7 +7,168 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Autho"
-      Background="White">
+      Background="#1a1a1a">
+
+    <Page.Resources>
+        <!-- Кисти (Brushes) для использования в триггерах -->
+        <SolidColorBrush x:Key="AccentRedBrush" Color="#c41e3a"/>
+        <SolidColorBrush x:Key="AccentRedHoverBrush" Color="#e02a4a"/>
+        <SolidColorBrush x:Key="AccentRedPressedBrush" Color="#9a172d"/>
+        <SolidColorBrush x:Key="BgPanelBrush" Color="#2d2d2d"/>
+        <SolidColorBrush x:Key="InputBackgroundBrush" Color="#3a3a3a"/>
+        <SolidColorBrush x:Key="InputBorderBrush" Color="#404040"/>
+        <SolidColorBrush x:Key="TextMainBrush" Color="#e0e0e0"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#a0a0a0"/>
+        <SolidColorBrush x:Key="TimerForegroundBrush" Color="#ff6b6b"/>
+        <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#404040"/>
+        <SolidColorBrush x:Key="SecondaryButtonHoverBrush" Color="#505050"/>
+        <SolidColorBrush x:Key="SecondaryButtonPressedBrush" Color="#303030"/>
+
+        <!-- Стиль для заголовков полей -->
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <!-- Базовый стиль для TextBox -->
+        <Style x:Key="BaseInputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Width" Value="220"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для PasswordBox -->
+        <Style x:Key="PasswordInputStyle" TargetType="PasswordBox">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Width" Value="220"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type PasswordBox}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для кнопок -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentRedBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="5,15,5,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource AccentRedHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{StaticResource AccentRedPressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Вторичная кнопка (гость) -->
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource SecondaryButtonBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource SecondaryButtonHoverBrush}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource SecondaryButtonPressedBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для CheckBox -->
+        <Style x:Key="ThemeCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,5,0,15"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="CheckBoxBorder" 
+                                    Width="16" Height="16" 
+                                    Background="{StaticResource InputBackgroundBrush}" 
+                                    BorderBrush="{StaticResource InputBorderBrush}" 
+                                    BorderThickness="1" 
+                                    CornerRadius="2"/>
+                            <ContentPresenter Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBoxBorder" Property="Background" Value="{StaticResource AccentRedBrush}"/>
+                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -16,42 +177,103 @@
             <ColumnDefinition Width="260"/>
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Text="Логин"/>
-            <TextBox x:Name="tbLogin"/>
-            <TextBlock Text="Пароль"/>
-            <PasswordBox x:Name="tbPassword"/>
-            <TextBlock x:Name="tblCaptcha" Text="Капча" Visibility="Hidden"/>
-            <TextBox x:Name="tbCaptcha" Visibility="Hidden"/>
+        <!-- Панель авторизации с тёмным фоном -->
+        <Border Grid.Column="1" 
+                Background="{StaticResource BgPanelBrush}" 
+                CornerRadius="8" 
+                Padding="25"
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center"
+                Width="280"
+                BorderBrush="{StaticResource InputBorderBrush}"
+                BorderThickness="1">
 
-            <!-- Кнопка восстановления пароля -->
-            <Button x:Name="btnForgotPassword" 
-            Content="Забыли пароль?" 
-            Margin="0,10,0,10" 
-            Click="btnForgotPassword_Click"
-            HorizontalAlignment="Center"/>
+            <StackPanel HorizontalAlignment="Center">
+                <!-- Заголовок -->
+                <TextBlock Text="АВТОБАЗА" 
+                           Foreground="{StaticResource AccentRedBrush}" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,0,0,20"/>
 
-            <!-- Переключатель двухфакторной аутентификации -->
-            <CheckBox x:Name="cbDisable2FA" 
-          Content="Отключить двухфакторную аутентификацию" 
-          Margin="0,5,0,15"
-          HorizontalAlignment="Center"/>
-            
+                <!-- Поля ввода -->
+                <TextBlock Text="Логин" Style="{StaticResource FieldLabelStyle}"/>
+                <TextBox x:Name="tbLogin" Style="{StaticResource BaseInputStyle}"/>
 
-            <!-- Таймер блокировки -->
-            <TextBlock x:Name="tbTimer" 
-               Foreground="Red" 
-               FontWeight="Bold" 
-               Visibility="Collapsed" 
-               HorizontalAlignment="Center" 
-               Margin="0,10,0,0"
-               Text="До разблокировки осталось: 10 сек."/>
+                <TextBlock Text="Пароль" Style="{StaticResource FieldLabelStyle}"/>
+                <PasswordBox x:Name="tbPassword" Style="{StaticResource PasswordInputStyle}"/>
 
-            <StackPanel Orientation="Horizontal" Height="80" HorizontalAlignment="Center">
-                <Button x:Name="btnEnterGuest" Margin="5,15,5,5" Content="Войти как гость" Click="btnEnterGuest_Click"/>
-                <Button x:Name="btnEnter" Margin="5,15,5,5" Content="Войти" Click="btnEnter_Click"/>
+                <!-- Капча (скрыта по умолчанию) -->
+                <TextBlock x:Name="tblCaptcha" 
+                           Text="Капча" 
+                           Style="{StaticResource FieldLabelStyle}"
+                           Visibility="Hidden"/>
+                <TextBox x:Name="tbCaptcha" 
+                         Style="{StaticResource BaseInputStyle}" 
+                         Visibility="Hidden"/>
+
+                <!-- Кнопка восстановления пароля -->
+                <Button x:Name="btnForgotPassword" 
+                        Content="Забыли пароль?" 
+                        Margin="0,10,0,10" 
+                        Click="btnForgotPassword_Click"
+                        HorizontalAlignment="Center"
+                        Background="Transparent"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        BorderThickness="0"
+                        FontSize="11"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <TextBlock Text="{TemplateBinding Content}" 
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   TextDecorations="Underline"/>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource AccentRedBrush}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Переключатель двухфакторной аутентификации -->
+                <!-- ✅ УБРАНО: Checked="CbDisable2FA_Checked" -->
+                <CheckBox x:Name="cbDisable2FA" 
+                          Content="Отключить 2FA" 
+                          Margin="0,5,0,15"
+                          HorizontalAlignment="Center"
+                          Style="{StaticResource ThemeCheckBoxStyle}"/>
+
+                <!-- Таймер блокировки -->
+                <TextBlock x:Name="tbTimer" 
+                           Foreground="{StaticResource TimerForegroundBrush}" 
+                           FontWeight="Bold" 
+                           Visibility="Collapsed" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,10,0,0"
+                           FontSize="12"
+                           Text="До разблокировки: 10 сек."/>
+
+                <!-- Кнопки входа -->
+                <StackPanel Orientation="Horizontal" Height="80" HorizontalAlignment="Center">
+                    <Button x:Name="btnEnterGuest" 
+                            Content="Гость" 
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Click="btnEnterGuest_Click"/>
+                    <Button x:Name="btnEnter" 
+                            Content="Войти" 
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Click="btnEnter_Click"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
-
+        </Border>
     </Grid>
 </Page>

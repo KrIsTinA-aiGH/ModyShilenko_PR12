@@ -4,7 +4,6 @@ namespace Shilenko_wpf1.Pages
 {
     public partial class CodeVerificationDialog : Window
     {
-        ///введенный пользователем код подтверждения
         public string EnteredCode { get; private set; }
 
         public CodeVerificationDialog()

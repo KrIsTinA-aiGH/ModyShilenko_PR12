@@ -6,7 +6,46 @@
       xmlns:local="clr-namespace:Shilenko_wpf1.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="Client">
+      Title="Client"
+      Background="#1a1a1a">
+
+    <Page.Resources>
+        <!-- Кисти темы (можно вынести в App.xaml для глобального использования) -->
+        <SolidColorBrush x:Key="BgDarkBrush" Color="#1a1a1a"/>
+        <SolidColorBrush x:Key="BgPanelBrush" Color="#2d2d2d"/>
+        <SolidColorBrush x:Key="BgCardBrush" Color="#3a3a3a"/>
+        <SolidColorBrush x:Key="AccentRedBrush" Color="#c41e3a"/>
+        <SolidColorBrush x:Key="AccentRedHoverBrush" Color="#e02a4a"/>
+        <SolidColorBrush x:Key="TextMainBrush" Color="#e0e0e0"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#a0a0a0"/>
+        <SolidColorBrush x:Key="TextSuccessBrush" Color="#4caf50"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#404040"/>
+
+        <!-- Стиль для заголовков -->
+        <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- Стиль для обычного текста -->
+        <Style x:Key="PageTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextMainBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <!-- Стиль для панели приветствия -->
+        <Style x:Key="GreetingPanelStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource BgCardBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentRedBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Margin" Value="10"/>
+        </Style>
+    </Page.Resources>
 
     <Grid x:Name="mainGrid">
         <Grid.RowDefinitions>
@@ -15,21 +54,49 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Панель приветствия -->
-        <Border Grid.Row="0" Background="#FFE8F5E8" Padding="15,10" Margin="10">
+        <!-- Панель приветствия (стилизованная) -->
+        <Border Grid.Row="0" Style="{StaticResource GreetingPanelStyle}">
             <StackPanel>
-                <TextBlock x:Name="tbGreeting" FontSize="16" FontWeight="Bold" Foreground="#FF2E7D32"/>
-                <TextBlock x:Name="tbUserName" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                <TextBlock x:Name="tbGreeting" 
+                           Style="{StaticResource PageTitleStyle}"
+                           Foreground="{StaticResource AccentRedBrush}"/>
+                <TextBlock x:Name="tbUserName" 
+                           Style="{StaticResource PageTextStyle}"
+                           FontWeight="SemiBold" 
+                           Margin="0,5,0,0"
+                           Foreground="{StaticResource TextMainBrush}"/>
             </StackPanel>
         </Border>
 
         <!-- Основное содержимое страницы -->
-        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Добро пожаловать в систему!" FontSize="18" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="tbUserInfo" FontSize="14" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-        </StackPanel>
+        <Border Grid.Row="1" 
+                Background="{StaticResource BgPanelBrush}"
+                CornerRadius="8"
+                Margin="20"
+                Padding="30"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="Добро пожаловать в систему!" 
+                           Style="{StaticResource PageTitleStyle}"
+                           HorizontalAlignment="Center"
+                           Foreground="{StaticResource TextMainBrush}"/>
+                <TextBlock x:Name="tbUserInfo" 
+                           Style="{StaticResource PageTextStyle}"
+                           HorizontalAlignment="Center" 
+                           Margin="0,10,0,0"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+            </StackPanel>
+        </Border>
 
         <!-- Место для динамических кнопок -->
-        <ContentPresenter Grid.Row="2" x:Name="dynamicContent"/>
+        <!-- Добавляем отступы и фон для контейнера, если кнопки будут добавляться -->
+        <Border Grid.Row="2" 
+                Background="{StaticResource BgPanelBrush}"
+                Padding="10"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1,0,1,1">
+            <ContentPresenter x:Name="dynamicContent"/>
+        </Border>
     </Grid>
 </Page>
