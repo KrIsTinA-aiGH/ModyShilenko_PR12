@@ -11,23 +11,41 @@ using Shilenko_wpf1.Validators;
 
 namespace Shilenko_wpf1.Pages
 {
+    /// <summary>
+    /// Страница авторизации пользователя в системе «Автобаза».
+    /// Обрабатывает вход по логину/паролю, двухфакторную аутентификацию,
+    /// восстановление пароля и защиту от подбора учётных данных.
+    /// </summary>
     public partial class Autho : Page
     {
-        ///сервис восстановления пароля для обработки сброса пароля
+        /// <summary>Сервис восстановления пароля для обработки сброса пароля</summary>
         private PasswordRecoveryService passwordRecoveryService;
-        ///генератор кодов для создания кодов 2FA и восстановления пароля
+
+        /// <summary>Генератор кодов для создания кодов 2FA и восстановления пароля</summary>
         private CodeGenerator codeGenerator;
-        ///текущий код двухфакторной аутентификации
+
+        /// <summary>Текущий код двухфакторной аутентификации</summary>
         private string current2FACode;
-        ///текущий пользователь для которого выполняется 2FA
+
+        /// <summary>Текущий пользователь, для которого выполняется 2FA</summary>
         private Users currentUserFor2FA;
 
+        /// <summary>Счётчик попыток входа для защиты от подбора пароля</summary>
         int attempts = 0;
+
+        /// <summary>Флаг блокировки формы после превышения лимита попыток</summary>
         private bool isBlocked = false;
+
+        /// <summary>Флаг необходимости ввода капчи</summary>
         private bool captchaRequired = false;
+
+        /// <summary>Таймер для отсчёта времени блокировки</summary>
         private System.Windows.Threading.DispatcherTimer blockTimer;
 
-        //Конструктор страницы авторизации
+        /// <summary>
+        /// Конструктор страницы авторизации.
+        /// Инициализирует компоненты, сервисы и сбрасывает форму.
+        /// </summary>
         public Autho()
         {
             InitializeComponent();
@@ -37,6 +55,10 @@ namespace Shilenko_wpf1.Pages
             ResetForm();
         }
 
+        /// <summary>
+        /// Инициализирует таймер блокировки формы.
+        /// Устанавливает интервал 1 секунду и подписывается на событие Tick.
+        /// </summary>
         private void InitializeTimer()
         {
             blockTimer = new System.Windows.Threading.DispatcherTimer();
@@ -44,16 +66,35 @@ namespace Shilenko_wpf1.Pages
             blockTimer.Tick += BlockTimer_Tick;
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки «Войти как гость».
+        /// Выполняет навигацию на страницу клиента с ролью «Гость»,
+        /// если форма не заблокирована.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void btnEnterGuest_Click(object sender, RoutedEventArgs e)
         {
             if (!isBlocked)
                 NavigationService.Navigate(new Client(null, "Гость"));
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки «Войти».
+        /// Выполняет валидацию данных, проверку капчи, аутентификацию пользователя
+        /// и двухфакторную проверку при необходимости.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void btnEnter_Click(object sender, RoutedEventArgs e)
         {
+            // Если форма заблокирована — выходим без действий
             if (isBlocked) return;
 
+            /* 
+             * Создаём модель валидации с данными из полей ввода.
+             * Trim() удаляет пробелы по краям для корректной проверки.
+             */
             var model = new AuthValidationModel
             {
                 Email = tbLogin.Text?.Trim(),
@@ -63,9 +104,11 @@ namespace Shilenko_wpf1.Pages
                 CaptchaRequired = captchaRequired
             };
 
+            // Выполняем валидацию данных через AuthValidator
             var validator = new AuthValidator();
             var result = validator.Validate(model);
 
+            // Если валидация не пройдена — показываем ошибки и выходим
             if (!result.IsValid)
             {
                 MessageBox.Show($"Ошибки:\n{result.ErrorMessage}",
@@ -75,6 +118,7 @@ namespace Shilenko_wpf1.Pages
 
             if (isBlocked) return;
 
+            // Проверка капчи, если она требуется
             if (captchaRequired)
             {
                 if (string.IsNullOrWhiteSpace(tbCaptcha.Text) || tbCaptcha.Text != tblCaptcha.Text.Replace(" ", ""))
@@ -85,10 +129,12 @@ namespace Shilenko_wpf1.Pages
                 }
             }
 
+            // Увеличиваем счётчик попыток и получаем данные для входа
             attempts++;
             var login = tbLogin.Text.Trim();
             var password = tbPassword.Password.Trim();
 
+            // Проверка на пустые поля
             if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
             {
                 MessageBox.Show("Введите логин и пароль!");
@@ -100,10 +146,12 @@ namespace Shilenko_wpf1.Pages
             {
                 using (var db = new AutobaseEntities())
                 {
+                    // Поиск пользователя в базе по логину и паролю
                     var user = db.Users.FirstOrDefault(x => x.Email == login && x.Password == password);
 
                     if (user != null)
                     {
+                        // Проверка рабочего времени для сотрудников
                         if (!TimeService.IsWithinWorkingHours() && TimeService.IsEmployee(user))
                         {
                             MessageBox.Show("Доступ разрешен только в рабочее время (10:00-19:00)!");
@@ -112,23 +160,30 @@ namespace Shilenko_wpf1.Pages
 
                         currentUserFor2FA = user;
 
-                        if (!cbDisable2FA.IsChecked.Value)  //Если флажок НЕ установлен 
+                        /* 
+                         * Если двухфакторная аутентификация не отключена пользователем —
+                         * выполняем 2FA, иначе сразу авторизуем.
+                         */
+                        if (!cbDisable2FA.IsChecked.Value)
                         {
-                            PerformTwoFactorAuthentication(user);  //Запускаем 2FA
+                            PerformTwoFactorAuthentication(user);
                         }
                         else
                         {
-                            LoginSuccess(user);  //Пропускаем 2FA и сразу авторизуем
+                            LoginSuccess(user);
                         }
 
+                        // Сброс счётчика попыток и капчи после успешного входа
                         attempts = 0;
                         captchaRequired = false;
                         HideCaptcha();
                     }
                     else
                     {
+                        // Обработка неверных данных входа
                         ShowErrorAndCaptcha();
 
+                        // Блокировка формы после 4 неудачных попыток
                         if (attempts >= 4)
                         {
                             BlockForm(10);
@@ -138,21 +193,28 @@ namespace Shilenko_wpf1.Pages
             }
             catch
             {
+                // При ошибке базы данных — переход в гостевой режим
                 if (!isBlocked)
                     NavigationService.Navigate(new Client(null, "Гость"));
             }
         }
 
-        ///выполнение двухфакторной аутентификации
+        /// <summary>
+        /// Выполняет двухфакторную аутентификацию пользователя.
+        /// Генерирует код, отправляет его на email и проверяет ввод.
+        /// </summary>
+        /// <param name="user">Пользователь, проходящий аутентификацию</param>
         private void PerformTwoFactorAuthentication(Users user)
         {
-            ///Получаем email пользователя для отправки кода
+            // Получаем email пользователя для отправки кода
             string email = user.Email;
-            ///Генерируем новый 4-значный код 2FA
+
+            // Генерируем новый 4-значный код 2FA
             current2FACode = codeGenerator.GenerateCode();
 
             var emailService = new EmailService();
-            ///Отправляем код 2FA на email пользователя
+
+            // Отправляем код 2FA на email пользователя
             bool codeSent = emailService.SendEmail(
                 email,
                 "Код двухфакторной аутентификации",
@@ -160,7 +222,7 @@ namespace Shilenko_wpf1.Pages
                 $"Код действителен в течение текущей сессии."
             );
 
-            ///Проверяем результат отправки письма
+            // Проверяем результат отправки письма
             if (!codeSent)
             {
                 MessageBox.Show("Не удалось отправить код аутентификации. Попробуйте ещё раз.",
@@ -170,21 +232,23 @@ namespace Shilenko_wpf1.Pages
                 return;
             }
 
-            ///Создаем и показываем диалог ввода кода 2FA
+            // Создаем и показываем диалог ввода кода 2FA
             var twoFactorDialog = new TwoFactorDialog();
-            ///Проверяем что пользователь ввел код
+
+            // Проверяем, что пользователь ввел код
             if (twoFactorDialog.ShowDialog() == true)
             {
-                ///Получаем введенный код
+                // Получаем введенный код
                 string enteredCode = twoFactorDialog.EnteredCode;
-                ///Проверяем правильность кода (без учета регистра)
+
+                // Проверяем правильность кода (без учета регистра)
                 if (current2FACode.Equals(enteredCode, StringComparison.OrdinalIgnoreCase))
                 {
                     MessageBox.Show("Код подтверждён!",
                                    "Успех",
                                    MessageBoxButton.OK,
                                    MessageBoxImage.Information);
-                    ///Выполняем успешный вход пользователя
+                    // Выполняем успешный вход пользователя
                     LoginSuccess(currentUserFor2FA);
                 }
                 else
@@ -204,7 +268,11 @@ namespace Shilenko_wpf1.Pages
             }
         }
 
-
+        /// <summary>
+        /// Выполняет успешный вход пользователя в систему.
+        /// Определяет роль и выполняет навигацию на главную страницу.
+        /// </summary>
+        /// <param name="user">Авторизованный пользователь</param>
         private void LoginSuccess(Users user)
         {
             var role = GetRole(user);
@@ -212,6 +280,10 @@ namespace Shilenko_wpf1.Pages
             NavigationService.Navigate(new Client(user, role));
         }
 
+        /// <summary>
+        /// Показывает ошибку входа и активирует капчу.
+        /// Очищает поле пароля для повторного ввода.
+        /// </summary>
         private void ShowErrorAndCaptcha()
         {
             MessageBox.Show("Неверный логин или пароль!");
@@ -221,6 +293,9 @@ namespace Shilenko_wpf1.Pages
             tbPassword.Clear();
         }
 
+        /// <summary>
+        /// Отображает капчу: делает поля видимыми и генерирует новое значение.
+        /// </summary>
         private void ShowCaptcha()
         {
             tbCaptcha.Visibility = Visibility.Visible;
@@ -230,6 +305,9 @@ namespace Shilenko_wpf1.Pages
             tbCaptcha.Clear();
         }
 
+        /// <summary>
+        /// Скрывает поля капчи и сбрасывает флаг необходимости ввода.
+        /// </summary>
         private void HideCaptcha()
         {
             tbCaptcha.Visibility = Visibility.Hidden;
@@ -237,6 +315,11 @@ namespace Shilenko_wpf1.Pages
             captchaRequired = false;
         }
 
+        /// <summary>
+        /// Определяет роль пользователя на основе должности или email.
+        /// </summary>
+        /// <param name="user">Пользователь для определения роли</param>
+        /// <returns>Строковое название роли</returns>
         private string GetRole(Users user)
         {
             try
@@ -277,7 +360,7 @@ namespace Shilenko_wpf1.Pages
                 MessageBox.Show($"Ошибка определения роли: {ex.Message}");
             }
 
-            //проверяем по email
+            // Резервная проверка по email, если не удалось определить через БД
             var email = user.Email.ToLower();
             if (email.Contains("admin")) return "Администратор";
             if (email.Contains("director")) return "Директор";
@@ -290,6 +373,10 @@ namespace Shilenko_wpf1.Pages
             return "Пользователь";
         }
 
+        /// <summary>
+        /// Сбрасывает форму авторизации к начальному состоянию.
+        /// Очищает поля ввода и скрывает капчу.
+        /// </summary>
         private void ResetForm()
         {
             if (!isBlocked)
@@ -301,6 +388,11 @@ namespace Shilenko_wpf1.Pages
             }
         }
 
+        /// <summary>
+        /// Блокирует форму на указанное время в секундах.
+        /// Отключает элементы управления и запускает таймер.
+        /// </summary>
+        /// <param name="seconds">Время блокировки в секундах</param>
         private void BlockForm(int seconds)
         {
             isBlocked = true;
@@ -318,8 +410,15 @@ namespace Shilenko_wpf1.Pages
             blockTimer.Start();
         }
 
+        /// <summary>Оставшееся время блокировки в секундах</summary>
         private int remainingBlockTime = 0;
 
+        /// <summary>
+        /// Обработчик тика таймера блокировки.
+        /// Уменьшает счётчик и разблокирует форму при достижении нуля.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void BlockTimer_Tick(object sender, EventArgs e)
         {
             remainingBlockTime--;
@@ -331,11 +430,18 @@ namespace Shilenko_wpf1.Pages
             }
         }
 
+        /// <summary>
+        /// Обновляет текст таймера блокировки в интерфейсе.
+        /// </summary>
         private void UpdateTimerText()
         {
             tbTimer.Text = $"До разблокировки осталось: {remainingBlockTime} сек.";
         }
 
+        /// <summary>
+        /// Разблокирует форму после истечения времени блокировки.
+        /// Сбрасывает флаги и восстанавливает элементы управления.
+        /// </summary>
         private void UnblockForm()
         {
             blockTimer.Stop();
@@ -354,15 +460,21 @@ namespace Shilenko_wpf1.Pages
             ResetForm();
         }
 
-        ///обработка нажатия кнопки "Забыли пароль?"
+        /// <summary>
+        /// Обработчик нажатия кнопки «Забыли пароль?».
+        /// Запускает процесс восстановления пароля через email.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void btnForgotPassword_Click(object sender, RoutedEventArgs e)
         {
-            ///Создаем и показываем диалог ввода email
+            // Создаем и показываем диалог ввода email
             var recoveryDialog = new PasswordRecoveryDialog();
-            ///Проверяем что пользователь подтвердил ввод email
+
+            // Проверяем, что пользователь подтвердил ввод email
             if (recoveryDialog.ShowDialog() == true)
             {
-                ///Получаем введенный email
+                // Получаем введенный email
                 string email = recoveryDialog.EnteredEmail;
 
                 using (var db = new AutobaseEntities())
@@ -378,7 +490,7 @@ namespace Shilenko_wpf1.Pages
                     }
                 }
 
-                ///Отправляем код восстановления на указанный email
+                // Отправляем код восстановления на указанный email
                 bool codeSent = passwordRecoveryService.SendRecoveryCode(email);
                 if (!codeSent)
                 {
@@ -389,24 +501,28 @@ namespace Shilenko_wpf1.Pages
                     return;
                 }
 
-                ///Создаем и показываем диалог ввода кода подтверждения
+                // Создаем и показываем диалог ввода кода подтверждения
                 var codeDialog = new CodeVerificationDialog();
-                ///Проверяем что пользователь ввел код
+
+                // Проверяем, что пользователь ввел код
                 if (codeDialog.ShowDialog() == true)
                 {
-                    ///Получаем введенный код
+                    // Получаем введенный код
                     string enteredCode = codeDialog.EnteredCode;
-                    ///Проверяем правильность кода
+
+                    // Проверяем правильность кода
                     if (passwordRecoveryService.VerifyCode(enteredCode))
                     {
-                        ///Создаем и показываем диалог ввода нового пароля
+                        // Создаем и показываем диалог ввода нового пароля
                         var resetDialog = new ResetPasswordDialog();
-                        ///Проверяем что пользователь подтвердил новый пароль
+
+                        // Проверяем, что пользователь подтвердил новый пароль
                         if (resetDialog.ShowDialog() == true)
                         {
-                            ///Получаем новый пароль
+                            // Получаем новый пароль
                             string newPassword = resetDialog.NewPassword;
-                            ///Сбрасываем пароль в базе данных
+
+                            // Сбрасываем пароль в базе данных
                             bool success = passwordRecoveryService.ResetPassword(newPassword);
 
                             if (success)
@@ -435,7 +551,5 @@ namespace Shilenko_wpf1.Pages
                 }
             }
         }
-
-
     }
 }

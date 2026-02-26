@@ -8,11 +8,24 @@ using Shilenko_wpf1.Services;
 
 namespace Shilenko_wpf1.Pages
 {
+    /// <summary>
+    /// Страница клиента — отображает приветствие и информацию о пользователе,
+    /// а также предоставляет доступ к функциям управления для администраторов.
+    /// </summary>
     public partial class Client : Page
     {
+        /// <summary>Текущий авторизованный пользователь</summary>
         private Users _currentUser;
+
+        /// <summary>Роль текущего пользователя в системе</summary>
         private string _userRole;
 
+        /// <summary>
+        /// Конструктор страницы клиента.
+        /// Инициализирует компоненты и отображает приветствие.
+        /// </summary>
+        /// <param name="user">Объект пользователя (может быть null для гостя)</param>
+        /// <param name="role">Строковое название роли пользователя</param>
         public Client(object user, string role)
         {
             InitializeComponent();
@@ -20,26 +33,37 @@ namespace Shilenko_wpf1.Pages
             _currentUser = user as Users;
             _userRole = role;
 
-            DisplayUserGreeting(); //метод приветствия
+            // Вызываем метод отображения приветствия
+            DisplayUserGreeting();
         }
 
+        /// <summary>
+        /// Отображает приветствие и информацию о пользователе.
+        /// Учитывает время суток, тип пользователя и его роль.
+        /// </summary>
         private void DisplayUserGreeting()
         {
-            //устанавливаем приветствие в зависимости от времени суток
+            // Устанавливаем приветствие в зависимости от времени суток
             tbGreeting.Text = TimeService.GetTimeBasedGreeting();
 
-            //устанавливаем полное имя пользователя
+            // Устанавливаем полное имя пользователя
             if (_currentUser != null)
             {
                 string fullName = TimeService.GetFullUserName(_currentUser);
                 tbUserName.Text = fullName;
 
-                //дополнительная информация о пользователе
+                /* 
+                 * Определяем тип пользователя:
+                 * - Сотрудник, если есть запись в таблице Employees
+                 * - Клиент, если есть запись в таблице Clients
+                 * - Иначе — обычный пользователь
+                 */
                 string userType = TimeService.IsEmployee(_currentUser) ? "Сотрудник" :
                                  TimeService.IsClient(_currentUser) ? "Клиент" : "Пользователь";
 
                 tbUserInfo.Text = $"Роль: {_userRole} | {userType}";
 
+                // Если пользователь имеет права администратора — показываем кнопки управления
                 if (_userRole == "Администратор" || _userRole == "Менеджер" || _userRole == "Директор")
                 {
                     AddAdminButtons();
@@ -47,11 +71,16 @@ namespace Shilenko_wpf1.Pages
             }
             else
             {
+                // Для гостевого входа
                 tbUserName.Text = "Гость";
                 tbUserInfo.Text = "Вы вошли в систему как гость";
             }
         }
 
+        /// <summary>
+        /// Добавляет кнопки управления для администраторов и менеджеров.
+        /// Создаёт панель с кнопками «Сотрудники» и «Заказы».
+        /// </summary>
         private void AddAdminButtons()
         {
             // Создаем панель с кнопками
@@ -75,7 +104,7 @@ namespace Shilenko_wpf1.Pages
             };
             employeesButton.Click += EmployeesButton_Click;
 
-            // Кнопка "Заказы" (можно добавить позже)
+            // Кнопка "Заказы" (заглушка для будущей реализации)
             Button ordersButton = new Button
             {
                 Content = "Управление заказами",
@@ -87,18 +116,31 @@ namespace Shilenko_wpf1.Pages
             };
             ordersButton.Click += OrdersButton_Click;
 
+            // Добавляем кнопки на панель
             buttonPanel.Children.Add(employeesButton);
             buttonPanel.Children.Add(ordersButton);
 
-            // Добавляем панель в ContentPresenter
+            // Добавляем панель в ContentPresenter для отображения
             dynamicContent.Content = buttonPanel;
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки «Управление сотрудниками».
+        /// Выполняет навигацию на страницу списка сотрудников.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void EmployeesButton_Click(object sender, RoutedEventArgs e)
         {
             NavigationService.Navigate(new EmployeesList());
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки «Управление заказами».
+        /// Пока отображает информационное сообщение о будущей реализации.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void OrdersButton_Click(object sender, RoutedEventArgs e)
         {
             // Пока просто сообщение, можно добавить позже

@@ -9,15 +9,28 @@ using System.Windows.Media.Imaging;
 using System.IO;
 using Shilenko_wpf1.Validators;
 
-
 namespace Shilenko_wpf1.Pages
 {
+    /// <summary>
+    /// Страница добавления и редактирования сотрудника.
+    /// Позволяет вводить данные сотрудника, выбирать должность,
+    /// загружать фотографию и сохранять изменения в базе данных.
+    /// </summary>
     public partial class EmployeeEdit : Page
     {
+        /// <summary>Текущий редактируемый сотрудник (или новый экземпляр)</summary>
         private Employees _currentEmployee;
+
+        /// <summary>Контекст базы данных для операций с сущностями</summary>
         private AutobaseEntities _db;
+
+        /// <summary>Путь к выбранному изображению на диске</summary>
         private string _imagePath;
 
+        /// <summary>
+        /// Конструктор страницы редактирования сотрудника.
+        /// </summary>
+        /// <param name="employee">Сотрудник для редактирования или null для создания нового</param>
         public EmployeeEdit(Employees employee)
         {
             InitializeComponent();
@@ -27,6 +40,9 @@ namespace Shilenko_wpf1.Pages
             LoadEmployeeData();
         }
 
+        /// <summary>
+        /// Загружает список должностей из базы данных в ComboBox.
+        /// </summary>
         private void LoadPositions()
         {
             try
@@ -42,9 +58,14 @@ namespace Shilenko_wpf1.Pages
             }
         }
 
+        /// <summary>
+        /// Загружает данные сотрудника в поля формы.
+        /// Различает режимы «новый сотрудник» и «редактирование».
+        /// </summary>
         private void LoadEmployeeData()
         {
-            if (_currentEmployee.EmployeeID == 0) // Новый сотрудник
+            // Режим добавления нового сотрудника
+            if (_currentEmployee.EmployeeID == 0)
             {
                 tbTitle.Text = "Добавление сотрудника";
                 btnDelete.Visibility = Visibility.Collapsed;
@@ -54,12 +75,12 @@ namespace Shilenko_wpf1.Pages
                 SetDefaultImage();
                 txtImagePath.Text = "Изображение не выбрано";
             }
-            else // Редактирование существующего
+            else // Режим редактирования существующего сотрудника
             {
                 tbTitle.Text = "Редактирование сотрудника";
                 btnDelete.Visibility = Visibility.Visible;
 
-                // Загружаем данные сотрудника
+                // Заполняем поля данными из объекта сотрудника
                 txtLastName.Text = _currentEmployee.LastName;
                 txtFirstName.Text = _currentEmployee.FirstName;
                 cmbPosition.SelectedValue = _currentEmployee.PositionID;
@@ -71,7 +92,11 @@ namespace Shilenko_wpf1.Pages
                 SetDefaultImage();
                 txtImagePath.Text = "Изображение не сохранено в базе";
             }
-            // Загружаем сохраненное изображение если есть
+
+            /* 
+             * Попытка загрузить сохранённое изображение сотрудника,
+             * если указан путь в базе данных.
+             */
             if (!string.IsNullOrEmpty(_currentEmployee.PhotoPath))
             {
                 try
@@ -81,7 +106,7 @@ namespace Shilenko_wpf1.Pages
 
                     if (File.Exists(imageFullPath))
                     {
-                        // Загружаем изображение
+                        // Загружаем изображение с кэшированием и заморозкой для потокобезопасности
                         BitmapImage bitmap = new BitmapImage();
                         bitmap.BeginInit();
                         bitmap.UriSource = new Uri(imageFullPath);
@@ -111,6 +136,12 @@ namespace Shilenko_wpf1.Pages
             }
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки «Выбрать изображение».
+        /// Открывает диалог выбора файла и загружает изображение в интерфейс.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void btnSelectImage_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -124,7 +155,7 @@ namespace Shilenko_wpf1.Pages
 
                 try
                 {
-                    // Загружаем изображение
+                    // Загружаем изображение с кэшированием и заморозкой
                     BitmapImage bitmap = new BitmapImage();
                     bitmap.BeginInit();
                     bitmap.UriSource = new Uri(_imagePath);
@@ -137,12 +168,15 @@ namespace Shilenko_wpf1.Pages
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Не удалось загрузить изображение: {ex.Message}",
-                                  "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                                   "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     SetDefaultImage();
                 }
             }
         }
 
+        /// <summary>
+        /// Устанавливает изображение по умолчанию из ресурсов приложения.
+        /// </summary>
         private void SetDefaultImage()
         {
             try
@@ -163,8 +197,15 @@ namespace Shilenko_wpf1.Pages
             }
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки «Сохранить».
+        /// Выполняет валидацию, сохранение данных сотрудника и изображения в БД.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
+            // Создаём модель валидации с данными из формы
             var model = new EmployeeValidationModel
             {
                 LastName = txtLastName.Text?.Trim(),
@@ -176,16 +217,18 @@ namespace Shilenko_wpf1.Pages
                 ImagePath = _imagePath
             };
 
+            // Выполняем валидацию через EmployeeValidator
             var validator = new EmployeeValidator();
             var result = validator.Validate(model);
 
             if (!result.IsValid)
             {
                 MessageBox.Show($"Ошибки:\n{result.ErrorMessage}",
-                               "Ошибка валидации", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                "Ошибка валидации", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
+            // Дополнительная проверка обязательных полей
             StringBuilder errors = new StringBuilder();
 
             if (string.IsNullOrWhiteSpace(txtLastName.Text))
@@ -208,7 +251,7 @@ namespace Shilenko_wpf1.Pages
 
             try
             {
-                // Заполняем данные сотрудника
+                // Заполняем объект сотрудника данными из формы
                 _currentEmployee.LastName = txtLastName.Text;
                 _currentEmployee.FirstName = txtFirstName.Text;
                 _currentEmployee.PositionID = (int)cmbPosition.SelectedValue;
@@ -216,30 +259,33 @@ namespace Shilenko_wpf1.Pages
                 _currentEmployee.Phone = txtPhone.Text;
                 _currentEmployee.Email = txtEmail.Text;
 
-                // Сохраняем сотрудника в БД чтобы получить EmployeeID
-                if (_currentEmployee.EmployeeID == 0) // Новый сотрудник
+                // Сохраняем сотрудника в БД (для новых записей получаем EmployeeID)
+                if (_currentEmployee.EmployeeID == 0)
                 {
                     _db.Employees.Add(_currentEmployee);
                 }
 
-                _db.SaveChanges(); // Сохраняем чтобы получить EmployeeID для новых
+                _db.SaveChanges(); // Сохраняем, чтобы получить EmployeeID для новых записей
 
-                // Если выбрано новое изображение, сохраняем его
+                /* 
+                 * Если выбрано новое изображение — копируем его в папку приложения
+                 * и сохраняем имя файла в базе данных.
+                 */
                 if (!string.IsNullOrEmpty(_imagePath) && File.Exists(_imagePath))
                 {
                     string imagesFolder = GetEmployeeImagesFolder();
 
-                    // Создаем уникальное имя файла
+                    // Создаем уникальное имя файла: emp_{ID}_{GUID}.ext
                     string fileName = $"emp_{_currentEmployee.EmployeeID}_{Guid.NewGuid():N}{Path.GetExtension(_imagePath)}";
                     string destinationPath = Path.Combine(imagesFolder, fileName);
 
-                    // Копируем файл
+                    // Копируем файл с перезаписью
                     File.Copy(_imagePath, destinationPath, true);
 
                     // Сохраняем только имя файла в базу (без полного пути)
                     _currentEmployee.PhotoPath = fileName;
 
-                    // Обновляем запись в базе
+                    // Обновляем запись в базе с путём к изображению
                     var employeeInDb = _db.Employees.Find(_currentEmployee.EmployeeID);
                     if (employeeInDb != null)
                     {
@@ -247,10 +293,10 @@ namespace Shilenko_wpf1.Pages
                         _db.SaveChanges();
                     }
 
-                    MessageBox.Show($"Изображение сохранено", "Информация",
+                    MessageBox.Show("Изображение сохранено", "Информация",
                         MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-                else if (_currentEmployee.EmployeeID > 0) // Редактирование существующего
+                else if (_currentEmployee.EmployeeID > 0) // Редактирование без нового изображения
                 {
                     // Обновляем другие данные для существующего сотрудника
                     var employeeInDb = _db.Employees.Find(_currentEmployee.EmployeeID);
@@ -277,13 +323,19 @@ namespace Shilenko_wpf1.Pages
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        /// <summary>
+        /// Возвращает путь к папке для хранения изображений сотрудников.
+        /// Создаёт папку, если она не существует.
+        /// </summary>
+        /// <returns>Полный путь к папке EmployeeImages</returns>
         private string GetEmployeeImagesFolder()
         {
-            // Путь к исполняемому файлу
+            // Путь к исполняемому файлу приложения
             string appPath = AppDomain.CurrentDomain.BaseDirectory;
             string imagesFolder = Path.Combine(appPath, "EmployeeImages");
 
-            // Создаем папку если ее нет
+            // Создаем папку, если её нет
             if (!Directory.Exists(imagesFolder))
             {
                 Directory.CreateDirectory(imagesFolder);
@@ -291,10 +343,18 @@ namespace Shilenko_wpf1.Pages
 
             return imagesFolder;
         }
+
+        /// <summary>
+        /// Обработчик нажатия кнопки «Удалить».
+        /// Удаляет сотрудника из базы данных после подтверждения.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void btnDelete_Click(object sender, RoutedEventArgs e)
         {
+            // Подтверждение удаления
             if (MessageBox.Show("Вы действительно хотите удалить этого сотрудника?",
-                "Подтверждение удаления", MessageBoxButton.YesNo,
+                 "Подтверждение удаления", MessageBoxButton.YesNo,
                 MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 try
@@ -317,6 +377,12 @@ namespace Shilenko_wpf1.Pages
             }
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки «Отмена».
+        /// Возвращает пользователя на предыдущую страницу.
+        /// </summary>
+        /// <param name="sender">Источник события</param>
+        /// <param name="e">Аргументы события</param>
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
             NavigationService.GoBack();

@@ -6,81 +6,105 @@ using System.Windows;
 
 namespace Shilenko_wpf1.Services
 {
-    ///Сервис для отправки электронных писем через протокол SMTP
+    /// <summary>
+    /// Сервис для отправки электронных писем через протокол SMTP.
+    /// Используется для отправки кодов подтверждения и уведомлений.
+    /// </summary>
     public class EmailService
     {
-        ///Сервер SMTP (например, smtp.mail.ru)
+        /// <summary>Сервер SMTP (например, smtp.mail.ru)</summary>
         private readonly string smtpServer;
-        ///Порт SMTP сервера (обычно 587 для Mail.ru)
+
+        /// <summary>Порт SMTP сервера (обычно 587 для Mail.ru)</summary>
         private readonly int smtpPort;
-        ///Логин для аутентификации на SMTP сервере (ваш email)
+
+        /// <summary>Логин для аутентификации на SMTP сервере (ваш email)</summary>
         private readonly string smtpUsername;
-        ///Пароль приложения для аутентификации на SMTP сервере
+
+        /// <summary>Пароль приложения для аутентификации на SMTP сервере</summary>
         private readonly string smtpPassword;
-        ///Флаг включения шифрования SSL/TLS
+
+        /// <summary>Флаг включения шифрования SSL/TLS</summary>
         private readonly bool enableSsl;
 
-        ///Конструктор: инициализация настроек SMTP из файла конфигурации App.config
+        /// <summary>
+        /// Конструктор сервиса email.
+        /// Инициализирует настройки SMTP из файла конфигурации App.config.
+        /// </summary>
         public EmailService()
         {
-            ///Читаем адрес SMTP сервера из конфигурации
+            // Читаем адрес SMTP сервера из конфигурации
             smtpServer = ConfigurationManager.AppSettings["SmtpServer"];
-            ///Читаем порт SMTP сервера из конфигурации и преобразуем в число
+
+            // Читаем порт SMTP сервера из конфигурации и преобразуем в число
             smtpPort = int.Parse(ConfigurationManager.AppSettings["SmtpPort"]);
-            ///Читаем логин (email) из конфигурации
+
+            // Читаем логин (email) из конфигурации
             smtpUsername = ConfigurationManager.AppSettings["SmtpUsername"];
-            ///Читаем пароль приложения из конфигурации
+
+            // Читаем пароль приложения из конфигурации
             smtpPassword = ConfigurationManager.AppSettings["SmtpPassword"];
-            ///Читаем флаг включения SSL из конфигурации
+
+            // Читаем флаг включения SSL из конфигурации
             enableSsl = bool.Parse(ConfigurationManager.AppSettings["SmtpEnableSsl"]);
         }
 
-        ///Метод: отправка электронного письма
-        ///toEmail - адрес получателя письма
-        ///subject - тема письма
-        ///body - текст письма
-        ///Возвращает true при успешной отправке, иначе false
+        /// <summary>
+        /// Отправляет электронное письмо через SMTP сервер.
+        /// </summary>
+        /// <param name="toEmail">Адрес получателя письма</param>
+        /// <param name="subject">Тема письма</param>
+        /// <param name="body">Текст письма</param>
+        /// <returns>True при успешной отправке, иначе false</returns>
         public bool SendEmail(string toEmail, string subject, string body)
         {
             try
             {
-                ///Создаем клиент SMTP с указанным сервером и портом
+                // Создаем клиент SMTP с указанным сервером и портом
                 using (var client = new SmtpClient(smtpServer, smtpPort))
                 {
-                    ///Устанавливаем учетные данные для аутентификации
+                    // Устанавливаем учетные данные для аутентификации
                     client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
-                    ///Включаем шифрование SSL если требуется
+
+                    // Включаем шифрование SSL если требуется
                     client.EnableSsl = enableSsl;
 
-                    ///Создаем новое почтовое сообщение
+                    /* 
+                     * Создаем новое почтовое сообщение со следующими параметрами:
+                     * - Отправитель: из конфигурации
+                     * - Тема и тело: из параметров метода
+                     * - Формат: обычный текст (не HTML)
+                     */
                     var mailMessage = new MailMessage
                     {
-                        ///Устанавливаем отправителя письма (ваш email)
+                        // Устанавливаем отправителя письма (ваш email)
                         From = new MailAddress(smtpUsername),
-                        ///Устанавливаем тему письма
+                        // Устанавливаем тему письма
                         Subject = subject,
-                        ///Устанавливаем тело письма
+                        // Устанавливаем тело письма
                         Body = body,
-                        ///Указываем что тело письма в формате обычного текста (не HTML)
+                        // Указываем, что тело письма в формате обычного текста (не HTML)
                         IsBodyHtml = false
                     };
-                    ///Добавляем получателя письма
+
+                    // Добавляем получателя письма
                     mailMessage.To.Add(toEmail);
 
-                    ///Отправляем письмо через SMTP сервер
+                    // Отправляем письмо через SMTP сервер
                     client.Send(mailMessage);
-                    ///Возвращаем успешный результат
+
+                    // Возвращаем успешный результат
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                ///При ошибке показываем сообщение пользователю
+                // При ошибке показываем сообщение пользователю
                 MessageBox.Show($"Ошибка отправки письма: {ex.Message}",
-                               "Ошибка SMTP",
-                               MessageBoxButton.OK,
-                               MessageBoxImage.Error);
-                ///Возвращаем неудачный результат
+                                "Ошибка SMTP",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+                // Возвращаем неудачный результат
                 return false;
             }
         }
